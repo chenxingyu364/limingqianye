@@ -403,15 +403,23 @@ const AUDIOS = {
   ge: '为人进出的门紧锁着，为狗爬出的洞敞开着。我渴望自由，但我深深地知道，人的身躯怎能从狗洞子里爬出。我希望有一天，地下的烈火，将我连这活棺材一齐烧掉，我应该在烈火与热血中得到永生！',
   boy: '新华日报！看新华日报！民族解放的号角，抗战到底的宣言！先生，买一份吧——山城的雾再大，也遮不住报上的光！'
 };
+// 预生成的配音 mp3（打包在 audio/ 里，断网可播）；加载失败时退回上面的浏览器合成音
+const AUDIO_SRC = { jiang: 'audio/jiang.mp3', ge: 'audio/ge.mp3', boy: 'audio/boy.mp3' };
 
 let zhVoices = [];
 if ('speechSynthesis' in window){
-  speechSynthesis.onvoiceschanged = () => {
-    zhVoices = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('zh'));
+  const pickZh = () => {
+    const all = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('zh'));
+    // 优先选"自然语音"音色（Edge 的 Online (Natural) 系，如晓晓/云希），再退回系统默认
+    const rank = v => /natural|online|xiaoxiao|yunxi|yunyang|晓晓|云希/i.test(v.name) ? 0 : 1;
+    all.sort((a, b) => rank(a) - rank(b));
+    zhVoices = all;
   };
+  pickZh();
+  speechSynthesis.onvoiceschanged = pickZh;
 }
 function speak(text, onend){
-  if (!('speechSynthesis' in window)) return;
+  if (!('speechSynthesis' in window)){ if (onend) onend(); return; }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'zh-CN'; u.rate = .95; u.pitch = 1;
@@ -422,6 +430,14 @@ function speak(text, onend){
 
 const vinyl = $('#vinyl');
 let playingAudio = null;
+let voiceEl = null;               // 复用的 <audio>，播预生成配音
+function finishVinyl(key, btn){
+  // 只有自己仍在播放时才清理（避免旧的 onended 误清新状态）
+  if (playingAudio !== key) return;
+  playingAudio = null;
+  vinyl.classList.remove('playing');
+  btn.classList.remove('playing');
+}
 $$('.vt-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const key = btn.dataset.audio;
@@ -429,20 +445,26 @@ $$('.vt-btn').forEach(btn => {
       playingAudio = null;
       vinyl.classList.remove('playing');
       $$('.vt-btn').forEach(b => b.classList.remove('playing'));
+      if (voiceEl) voiceEl.pause();
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       return;
     }
     playingAudio = key;               // 先登记，再开播
     $$('.vt-btn').forEach(b => b.classList.toggle('playing', b === btn));
     vinyl.classList.add('playing');
-    speak(AUDIOS[key], () => {
-      // 只有自己仍在播放时才清理（避免旧语音的 onend 误清新状态）
-      if (playingAudio === key){
-        vinyl.classList.remove('playing');
-        btn.classList.remove('playing');
-        playingAudio = null;
-      }
-    });
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    if (voiceEl) voiceEl.pause();
+    const src = AUDIO_SRC[key];
+    if (src){
+      if (!voiceEl){ voiceEl = new Audio(); voiceEl.preload = 'auto'; voiceEl.hidden = true; document.body.appendChild(voiceEl); }
+      voiceEl.onended = () => finishVinyl(key, btn);
+      // mp3 加载/播放失败（比如没带 audio 文件夹）→ 退回浏览器合成音
+      voiceEl.onerror = () => { if (playingAudio === key) speak(AUDIOS[key], () => finishVinyl(key, btn)); };
+      voiceEl.src = src;
+      voiceEl.play().catch(() => { if (playingAudio === key) speak(AUDIOS[key], () => finishVinyl(key, btn)); });
+    } else {
+      speak(AUDIOS[key], () => finishVinyl(key, btn));
+    }
   });
 });
 
