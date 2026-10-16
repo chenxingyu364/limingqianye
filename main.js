@@ -458,10 +458,22 @@ $$('.vt-btn').forEach(btn => {
     if (src){
       if (!voiceEl){ voiceEl = new Audio(); voiceEl.preload = 'auto'; voiceEl.hidden = true; document.body.appendChild(voiceEl); }
       voiceEl.onended = () => finishVinyl(key, btn);
-      // mp3 加载/播放失败（比如没带 audio 文件夹）→ 退回浏览器合成音
-      voiceEl.onerror = () => { if (playingAudio === key) speak(AUDIOS[key], () => finishVinyl(key, btn)); };
-      voiceEl.src = src;
-      voiceEl.play().catch(() => { if (playingAudio === key) speak(AUDIOS[key], () => finishVinyl(key, btn)); });
+      // 播放策略：失败重试一次（绕缓存）→ 仍失败才退回浏览器合成音
+      const playMp3 = (attempt) => {
+        if (playingAudio !== key) return;
+        voiceEl.onerror = () => {
+          if (playingAudio !== key) return;
+          if (attempt === 0) playMp3(1);
+          else speak(AUDIOS[key], () => finishVinyl(key, btn));
+        };
+        voiceEl.src = attempt === 0 ? src : src + '&r=' + Date.now();
+        voiceEl.play().catch(() => {
+          if (playingAudio !== key) return;
+          if (attempt === 0) playMp3(1);
+          else speak(AUDIOS[key], () => finishVinyl(key, btn));
+        });
+      };
+      playMp3(0);
     } else {
       speak(AUDIOS[key], () => finishVinyl(key, btn));
     }
