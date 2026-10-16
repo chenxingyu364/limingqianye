@@ -404,7 +404,7 @@ const AUDIOS = {
   boy: '新华日报！看新华日报！民族解放的号角，抗战到底的宣言！先生，买一份吧——山城的雾再大，也遮不住报上的光！'
 };
 // 预生成的配音 mp3（打包在 audio/ 里，断网可播）；加载失败时退回上面的浏览器合成音
-const AUDIO_SRC = { jiang: 'audio/jiang.mp3?v=3', ge: 'audio/ge.mp3?v=3', boy: 'audio/boy.mp3?v=3' };
+const AUDIO_SRC = { jiang: 'audio/jiang.mp3?v=4', ge: 'audio/ge.mp3?v=4', boy: 'audio/boy.mp3?v=4' };
 
 let zhVoices = [];
 if ('speechSynthesis' in window){
