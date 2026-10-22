@@ -1355,3 +1355,106 @@ a{color:inherit;text-decoration:none}
   .game-top{gap:10px}
   .belief-track{width:80px}
 }
+
+/* ============================================================
+   独立游戏 UI 修订（反模板化 · 2010s 独立游戏官网质感）
+   —— 不对称布局 / 硬阴影 / 噪点 / 偏左帮助 / 手写提示
+   ============================================================ */
+
+/* 1) 卡片底：硬阴影 + 0.5% 噪点 + 小圆角 */
+#game .exp-grid > .exp-card{
+  position:relative;border-radius:6px;padding:24px;
+  box-shadow:-2px 2px 0 rgba(0,0,0,.42);
+}
+#game .exp-grid > .exp-card::after{
+  content:"";position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  background-size:120px;
+  opacity:.05;mix-blend-mode:overlay;
+}
+#game .exp-grid > .exp-card > *{position:relative;z-index:1}
+
+/* 2) 模块宽度错位（±4%，拒绝对齐的机械感） */
+#game .exp-grid > .exp-card:nth-child(3n+1){width:101.5%}
+#game .exp-grid > .exp-card:nth-child(3n+2){width:96.5%;margin-top:18px}
+#game .exp-grid > .exp-card:nth-child(3n){width:99%;margin-top:7px}
+
+/* 3) 抉择按钮：左下错位堆叠 + 1px 位移硬阴影 */
+#game .game-panel{font-family:var(--font-kai)}
+#game .choice-opts{grid-template-columns:1fr;max-width:82%}
+#game .choice-opts .choice-opt:nth-child(2){margin-left:28px;width:calc(100% - 28px)}
+#game .choice-opts .choice-opt:nth-child(3){margin-left:12px;width:calc(100% - 12px)}
+#game .choice-opts .choice-opt:nth-child(4){margin-left:36px;width:calc(100% - 36px)}
+#game .choice-opt{
+  border-radius:4px;font-family:var(--font-kai);font-size:14px;
+  box-shadow:-2px 2px 0 rgba(0,0,0,.42);
+  transition:transform .12s, box-shadow .12s, border-color .25s, color .25s;
+}
+#game .choice-opt:hover{
+  border-color:var(--gold);color:var(--paper);
+  transform:translate(-1px,-1px);
+  box-shadow:-3px 3px 0 rgba(0,0,0,.42);
+}
+#game .choice-opt:active{
+  transform:translate(1px,1px);
+  box-shadow:0 0 0 rgba(0,0,0,0);
+}
+#game .game-panel button:not(.choice-opt){
+  border-radius:4px;font-family:var(--font-kai);
+  border:1px solid var(--gold);box-shadow:-2px 2px 0 rgba(0,0,0,.42);
+}
+#game .game-panel button:not(.choice-opt):active{transform:translate(1px,1px);box-shadow:0 0 0 rgba(0,0,0,0)}
+
+/* 4) 结局图鉴：右缘出血（贴死卡片右边），标题轻歪 */
+#game .codex-title{transform:rotate(-.5deg);transform-origin:left bottom}
+#game .ending-codex{overflow:hidden;margin-right:-24px}
+#game .codex-grid{margin-right:0;margin-left:-2px}
+#game .codex-slot{border-radius:4px}
+
+/* 5) 去"发光/渐变"：信念条改哑金、档案卡改平面、圆角收小 */
+#game .belief-track span{box-shadow:none;background:var(--gold)}
+#game .belief-track{border-radius:2px}
+#game .belief-track span{border-radius:2px}
+#game .result-card{
+  border-radius:4px;text-align:left;max-width:none;margin:8px 0 0;
+  background:var(--char-3);border:1px solid var(--line);
+  box-shadow:-2px 2px 0 rgba(0,0,0,.42);
+}
+#game .codex-slot.unlocked{background:var(--char-3)}
+
+/* 6) 偏左 8px 的帮助按钮 + 手写提示（不完美但有用） */
+#game .g-hand-row{margin:-2px 0 0 -8px;transform:rotate(-.5deg);transform-origin:left top}
+#game .g-help{display:block}
+#game .g-help summary{
+  list-style:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  font-family:var(--font-kai);font-size:12px;letter-spacing:1px;color:var(--fog);
+  padding:3px 10px;border:1px solid var(--line);border-radius:3px;
+  background:var(--char-3);transform:rotate(-1deg);
+  box-shadow:-2px 2px 0 rgba(0,0,0,.35);
+  transition:color .2s, border-color .2s;
+}
+#game .g-help summary::-webkit-details-marker{display:none}
+#game .g-help summary:hover,#game .g-help[open] summary{color:var(--gold);border-color:var(--gold)}
+#game .g-help-q{font-family:var(--font-en);color:var(--gold);font-size:13px}
+#game .g-help-note{
+  margin:7px 0 0 9px;padding:10px 12px;max-width:280px;
+  border:1px solid var(--line);border-radius:3px;background:var(--char-2);
+  color:var(--fog);font-size:12.5px;line-height:1.85;
+  box-shadow:-2px 2px 0 rgba(0,0,0,.42);transform:rotate(-.4deg);
+}
+#game .g-hand{
+  font-family:var(--font-kai);font-size:12.5px;color:var(--fog);
+  margin:7px 0 0 2px;opacity:.85;
+}
+
+/* 7) 图标手绘感：轻微歪斜（同一区域角度不齐） */
+#game .i-ico{transform:rotate(-.6deg)}
+#game .pc-head .i-ico,#game .game-top .i-ico{transform:rotate(.5deg)}
+
+/* 移动端保护：窄屏取消出血与错位 */
+@media (max-width:1024px){
+  #game .exp-grid > .exp-card{width:auto !important;margin-top:0 !important}
+  #game .choice-opts{max-width:none}
+  #game .choice-opts .choice-opt{margin-left:0 !important;width:auto !important}
+  #game .ending-codex{margin-right:0}
+}
