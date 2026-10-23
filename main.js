@@ -647,6 +647,7 @@ function tick(key){
   saveStats();
   const el = document.querySelector(`.dash-num[data-key="${key}"]`);
   if (el) countUp(el, +el.textContent || 0, stats[key]);
+  cntHit(key);   // 真实累计（失败静默回退本地统计）
 }
 function countUp(el, from, to){
   const t0 = performance.now(), dur = 600;
@@ -658,6 +659,37 @@ function countUp(el, from, to){
 }
 (function renderDash(){
   document.querySelectorAll('.dash-num').forEach(el => { el.textContent = stats[el.dataset.key] || 0; });
+})();
+
+/* 真实累计计数：abacus 轻量匿名计数器（跨访客真实累计），
+   网络失败 / 被墙时静默回退本地 localStorage 统计 */
+const CNT_NS = 'limingqianye-2026';
+const CNT_KEYS = { story:'listened', lamps:'lamps', flags:'flags', certs:'certs', boxes:'boxes' };
+function cntHit(key){
+  try{
+    fetch('https://abacus.jasoncameron.dev/hit/' + CNT_NS + '/' + CNT_KEYS[key])
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (j && typeof j.value === 'number'){
+          const el = document.querySelector(`.dash-num[data-key="${key}"]`);
+          if (el) countUp(el, +el.textContent || 0, j.value);
+        }
+      }).catch(() => {});
+  } catch(e){}
+}
+(function cntLoad(){
+  Object.keys(CNT_KEYS).forEach(key => {
+    try{
+      fetch('https://abacus.jasoncameron.dev/get/' + CNT_NS + '/' + CNT_KEYS[key])
+        .then(r => r.ok ? r.json() : null)
+        .then(j => {
+          if (j && typeof j.value === 'number'){
+            const el = document.querySelector(`.dash-num[data-key="${key}"]`);
+            if (el) el.textContent = Math.max(j.value, stats[key] || 0);
+          }
+        }).catch(() => {});
+    } catch(e){}
+  });
 })();
 
 /* ============================================================
