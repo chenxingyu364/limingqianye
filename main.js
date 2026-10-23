@@ -708,7 +708,9 @@ const GAME = [
       { t:'钻进小巷——绕远路，也要把报纸送到读者手里', dim:'tenacity' },
       { t:'走大路，边走边喊「卖报！新华日报！」——反其道而行，赌他们不敢当街动手', dim:'wisdom' }
     ],
-    archive:'《新华日报》1938年1月在重庆创刊。报童们在军警监视下送报，既是发行员，也兼做传递消息的交通员，被称作「雾都的传灯人」。' },
+    archive:'《新华日报》1938年1月在重庆创刊。报童们在军警监视下送报，既是发行员，也兼做传递消息的交通员，被称作「雾都的传灯人」。',
+    extra:'码头边的麻袋堆里漏出一角旧报纸，是你上周送出去的，边角被人翻得起了毛——原来真的有人读。',
+    again:'第二次走到这条街上，雾好像没那么重了。可你知道今晚会发生什么，脚还是从码头这边迈了出去。' },
   { title:'第二章 · 狱中书信', tag:'渣滓洞监狱 · 审讯室',
     intro:[
       '终究还是没躲过。巷口的暗哨把你按在地上，报纸散了一地，你被带进了渣滓洞。',
@@ -721,7 +723,9 @@ const GAME = [
       { t:'咬牙沉默——宁可指骨尽碎，也不吐一个字', dim:'loyalty' },
       { t:'胡编一个名字拖延时间——让外面的人来得及转移', dim:'wisdom' }
     ],
-    archive:'1948年，江竹筠（江姐）在渣滓洞受竹签钉指酷刑，留下「竹签子是竹子做的，共产党员的意志是钢铁做的」的名言。1949年11月14日就义，年仅29岁。' },
+    archive:'1948年，江竹筠（江姐）在渣滓洞受竹签钉指酷刑，留下「竹签子是竹子做的，共产党员的意志是钢铁做的」的名言。1949年11月14日就义，年仅29岁。',
+    extra:'审讯室的墙上有排指甲划出的刻痕，数下来一百一十三道——上一个人在这里数到一百一十三，就没再往下数。',
+    again:'竹签还是那根竹签，审讯官还是那个审讯官。你知道了疼是什么样子，也就知道这一关该怎么过。' },
   { title:'第三章 · 囚窗诗会', tag:'白公馆监狱 · 平二室',
     intro:[
       '你被转到了白公馆。难友们没有垮，他们在囚窗下秘密办起诗会。',
@@ -734,7 +738,9 @@ const GAME = [
       { t:'主动站到门口望风——诗会不能断，我来挡', dim:'tenacity' },
       { t:'把诗稿塞进墙缝——留下证据，也留下明天的名字', dim:'wisdom' }
     ],
-    archive:'狱中难友坚持学习，狱中党支部秘密组织读书会、办诗会。1949年10月，难友闻听新中国成立的消息，以黄纸剪星、秘密绣制五星红旗。' },
+    archive:'狱中难友坚持学习，狱中党支部秘密组织读书会、办诗会。1949年10月，难友闻听新中国成立的消息，以黄纸剪星、秘密绣制五星红旗。',
+    extra:'囚窗只有巴掌大，可每天天亮前，第一缕光总是先落在这巴掌大的地方。难友们管这块光叫「钟」。',
+    again:'诗会又开始了。这一次你没有等诗稿传到自己手里——你知道它从哪只手出来，又要到哪只手上去。' },
   { title:'第四章 · 黎明前夜', tag:'1949年11月27日 · 深夜',
     intro:[
       '外面传来密集的枪声，看守在加固铁门。今夜，就是黎明前最黑的那一段。',
@@ -747,7 +753,9 @@ const GAME = [
       { t:'冲出去——不能让他一个人扛', dim:'tenderness' },
       { t:'攥紧纸片，在黑暗里一动不动——他交给你的话，比你的命重要', dim:'loyalty' }
     ],
-    archive:'1949年11月27日，国民党特务对渣滓洞、白公馆在押人员实施集体屠杀，180余人殉难，重庆在3天后解放。脱险的罗广斌将难友讨论的「狱中八条」整理上报，成为以生命换来的红色遗产。' }
+    archive:'1949年11月27日，国民党特务对渣滓洞、白公馆在押人员实施集体屠杀，180余人殉难，重庆在3天后解放。脱险的罗广斌将难友讨论的「狱中八条」整理上报，成为以生命换来的红色遗产。',
+    extra:'贴着墙的黑暗里，你能听见自己的心跳。数到第七下的时候，外面的枪声停了——停得很突然。',
+    again:'又到了这一夜。老大哥还是会把那片纸塞进你手里。你捏着它，像捏着上辈子的事。' }
 ];
 const ENDINGS = {
   loyalty:   { title:'明灯不灭', flower:'红梅 · 忠贞', text:'黎明前夜，你没能走出去。但那张写着「狱中八条」的纸片被后人从墙缝中找到——它后来成为执政党自我警示的诫训。你说不出话，可那盏灯，从没有灭过。' },
@@ -960,14 +968,17 @@ function startGame(){
 function renderGame(){
   if (gStep === 'ending'){ renderEnding(); return; }
   const ch = GAME[gIdx];
-  $('#gameProgress').textContent = ch.title;
+  const isReplay = codex.length > 0;
+  $('#gameProgress').textContent = ch.title + (isReplay ? ' · 二周目' : '');
   $('#gameStage').className = 'game-stage ' + CHAPTER_TINT[gIdx];
   const panel = $('#gamePanel');
 
   if (gStep === 'intro'){
     chapterChime();
     panel.innerHTML = `<div class="scene-strip">${SCENE_SVG[gIdx]}</div><p class="g-tag">${ch.tag}</p><p class="g-text" id="gText"></p><button class="btn btn-mini g-continue">继续 ▸</button>`;
-    typeWriter($('#gText'), ch.intro.join('　'));
+    const storyText = (isReplay && ch.again ? ch.again + '　' : '') +
+      ch.intro.join('　') + (ch.extra ? '　' + ch.extra : '');
+    typeWriter($('#gText'), storyText);
     $('.g-continue', panel).addEventListener('click', () => {
       stopType();
       if (ch.minigame) startMinigame();
